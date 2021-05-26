@@ -1,18 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using FieldEffect.Interfaces;
 
 namespace FieldEffect
 {
     [Serializable]
-    public class BatteryInfo : IBatteryInfo
+    public sealed class BatteryInfo : IBatteryInfo
     {
         public BatteryInfo()
         { }
-        public BatteryInfo(string clientName, int estimatedChargeRemaining, 
+        public BatteryInfo(string clientName, int estimatedChargeRemaining,
             int estimatedRunTime, int batteryStatus)
         {
             ClientName = clientName;
@@ -20,11 +15,13 @@ namespace FieldEffect
             EstimatedRunTime = estimatedRunTime;
             BatteryStatus = batteryStatus;
         }
-        virtual public string ClientName { get; set; }
-        virtual public int EstimatedChargeRemaining { get; set; }
 
-        virtual public int EstimatedRunTime { get; set; }
+        public string ClientName { get; set; }
 
-        virtual public int BatteryStatus { get; set; }
+        public int EstimatedChargeRemaining { get; set; }
+
+        public int EstimatedRunTime { get; set; }
+
+        public int BatteryStatus { get; set; }
     }
 }

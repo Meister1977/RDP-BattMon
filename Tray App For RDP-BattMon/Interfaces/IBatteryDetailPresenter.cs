@@ -1,5 +1,4 @@
-﻿using FieldEffect.Interfaces;
-using System;
+﻿using System;
 
 namespace FieldEffect.Interfaces
 {

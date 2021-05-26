@@ -1,28 +1,29 @@
-﻿using FieldEffect.Classes;
-using FieldEffect.Interfaces;
-using FieldEffect.VCL.Exceptions;
-using FieldEffect.VCL.Client.WtsApi32;
-using log4net;
-using System;
+﻿using System;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
+using FieldEffect.Classes;
+using FieldEffect.Interfaces;
+using FieldEffect.VCL.Client.WtsApi32;
+using FieldEffect.VCL.Exceptions;
+using log4net;
 using Ninject;
 
 namespace FieldEffect
 {
     class Program
     {
-        private static Program _instance = null;
-        private static ILog _log = null;
-        private readonly IBatteryDataReporter _batteryReporter = null;
-    
+        private static Program _instance;
+        private static ILog _log;
+        private readonly IBatteryDataReporter _batteryReporter;
+
         public Program(ILog log, IBatteryDataReporter batteryDataReporter)
         {
             _log = log;
             _batteryReporter = batteryDataReporter;
 
-            Application.ThreadException += (s, e) => _log.Fatal(e.Exception.ToString());
-            AppDomain.CurrentDomain.UnhandledException += (s, e) => _log.Fatal(e.ExceptionObject.ToString());
+            Application.ThreadException += (_, e) => _log.Fatal(e.Exception.ToString());
+            AppDomain.CurrentDomain.UnhandledException += (_, e) => _log.Fatal(e.ExceptionObject.ToString());
 
             _log.Info("BattMon Remote Desktop client battery reporter started.");
         }
@@ -39,7 +40,7 @@ namespace FieldEffect
             _log.Info("BattMon Remote Desktop client battery reporter exited.");
         }
 
-        public bool Run(ref ChannelEntryPoints entry)
+        public bool Run(ChannelEntryPoints entry)
         {
             try
             {
@@ -52,7 +53,7 @@ namespace FieldEffect
                 _log.Fatal(e.ToString());
                 return false;
             }
-            catch (Ninject.ActivationException e)
+            catch (ActivationException e)
             {
                 _log.Fatal(e.ToString());
                 return false;
@@ -64,13 +65,15 @@ namespace FieldEffect
             }
             return true;
         }
-        
-        [DllExport("VirtualChannelEntry", CallingConvention.StdCall)]
-        public static bool VirtualChannelEntry(ref ChannelEntryPoints entry)
+
+        [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvStdcall) }, EntryPoint = "VirtualChannelEntry")]
+        public static bool VirtualChannelEntry(IntPtr entry)
         {
+            _log.Info("BattMon Remote Desktop client battery VirtualChannelEntry");
+            var entryPoint = (ChannelEntryPoints)Marshal.PtrToStructure(entry, typeof(ChannelEntryPoints))!;
             //Composition root
             _instance = NinjectConfig.Instance.Get<Program>();
-            return _instance.Run(ref entry);
+            return _instance.Run(entryPoint);
         }
     }
 }

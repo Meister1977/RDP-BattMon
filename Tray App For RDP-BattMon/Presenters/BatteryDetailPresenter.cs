@@ -1,28 +1,27 @@
-﻿using FieldEffect.Interfaces;
-using FieldEffect.VCL.Server.Interfaces;
-using log4net;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Timers;
 using System.Windows.Forms;
+using FieldEffect.Interfaces;
+using FieldEffect.Properties;
+using log4net;
+using Timer = System.Timers.Timer;
 
 namespace FieldEffect.Presenters
 {
     public class BatteryDetailPresenter : IBatteryDetailPresenter
     {
-        private IBatteryDataRetriever _batteryDataRetriever;
-        private IBatteryIcon _batteryIcon;
-        private bool _isDisposed = false;
-        private IBatteryParametersFactory _batteryParametersFactory;
-        private ILog _log;
-        private System.Timers.Timer _timer;
+        private readonly IBatteryDataRetriever _batteryDataRetriever;
+        private readonly IBatteryIcon _batteryIcon;
+        private bool _isDisposed;
+        private readonly IBatteryParametersFactory _batteryParametersFactory;
+        private readonly ILog _log;
+        private readonly Timer _timer;
 
         public IBatteryDetail BatteryDetailView { get; set; }
 
-        public BatteryDetailPresenter(IBatteryDataRetriever batteryDataRetriever, IBatteryIcon batteryIcon, IBatteryDetail batteryDetailView, IBatteryParametersFactory batteryParametersFactory, ILog log, System.Timers.Timer timer)
+        public BatteryDetailPresenter(IBatteryDataRetriever batteryDataRetriever, IBatteryIcon batteryIcon, IBatteryDetail batteryDetailView, IBatteryParametersFactory batteryParametersFactory, ILog log, Timer timer)
         {
             _batteryDataRetriever = batteryDataRetriever;
             _batteryIcon = batteryIcon;
@@ -39,7 +38,7 @@ namespace FieldEffect.Presenters
 
             _timer.Start();
 
-            _log.Info(Properties.Resources.InfoMsgBattMonStart);
+            _log.Info(Resources.InfoMsgBattMonStart);
 
         }
 
@@ -49,7 +48,7 @@ namespace FieldEffect.Presenters
             BatteryDetailView.RequestClose += BatteryDetailView_RequestClose;
         }
 
-        private void Timer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
+        private void Timer_Elapsed(object sender, ElapsedEventArgs e)
         {
             RenderBattery();
         }
@@ -60,16 +59,16 @@ namespace FieldEffect.Presenters
             {
                 e.Cancel = true;
                 BatteryDetailView.Visible = false;
-                BatteryDetailView.BatteryTrayControl.BalloonTipTitle = Properties.Resources.MinimizedTitle;
-                BatteryDetailView.BatteryTrayControl.BalloonTipText = Properties.Resources.MinimizedMessage;
+                BatteryDetailView.BatteryTrayControl.BalloonTipTitle = Resources.MinimizedTitle;
+                BatteryDetailView.BatteryTrayControl.BalloonTipText = Resources.MinimizedMessage;
                 BatteryDetailView.BatteryTrayControl.ShowBalloonTip(5000);
             }
         }
 
-        private string BatteryStatus(int status)
+        private static string BatteryStatus(int status)
         {
 
-            return new Dictionary<int, String>()
+            return new Dictionary<int, string>
             {
                 { 0, "Unknown"                    },
                 { 1, "Discharging"                },
@@ -90,20 +89,18 @@ namespace FieldEffect.Presenters
         {
             if (BatteryDetailView.InvokeRequired)
             {
-                BatteryDetailView.Invoke(new Action(() => {
-                    RenderBattery();
-                }));
+                BatteryDetailView.Invoke(new Action(RenderBattery));
                 return;
             }
 
-            List<IBatteryInfo> batteryInfo = new List<IBatteryInfo>(_batteryDataRetriever.BatteryInfo);
+            var batteryInfo = new List<IBatteryInfo>(_batteryDataRetriever.BatteryInfo);
 
             //TODO: Count() method is probably going to be slow. Rethink the Batteries::IEnumerable?
             if (batteryInfo.Count != BatteryDetailView.Batteries.Count())
             {
                 //Dispose of existing
                 BatteryDetailView.ClearBatteries();
-                foreach (var battery in batteryInfo)
+                for (var i = 0; i < batteryInfo.Count; i++)
                 {
                     BatteryDetailView.AddBattery(_batteryParametersFactory.Create());
                 }
@@ -117,16 +114,16 @@ namespace FieldEffect.Presenters
             //we should get to the root cause.
             double totalBattery = 0; double totalPercent = 0;
             var batteryQueue = new Queue<IBatteryParameters>(BatteryDetailView.Batteries);
-            for (int battIdx = 0; battIdx < batteryInfo.Count; battIdx++)
+            for (var battIdx = 0; battIdx < batteryInfo.Count; battIdx++)
             {
-                
+
                 if (batteryQueue.Count > 0)
                 {
-                    IBatteryParameters battery = batteryQueue.Dequeue();
+                    var battery = batteryQueue.Dequeue();
                     battery.BatteryStatus = BatteryStatus(batteryInfo[battIdx].BatteryStatus);
                     battery.ClientEstRuntime = new TimeSpan(0, 0, batteryInfo[battIdx].EstimatedRunTime).ToString();
                     battery.EstimatedChargeRemaining = batteryInfo[battIdx].EstimatedChargeRemaining;
-                    battery.BatteryName = String.Format(Properties.Resources.BatteryName, battIdx + 1);
+                    battery.BatteryName = string.Format(Resources.BatteryName, battIdx + 1);
                     totalBattery += batteryInfo[battIdx].EstimatedChargeRemaining;
                     totalPercent += 100;
                 }
@@ -134,25 +131,26 @@ namespace FieldEffect.Presenters
 
             if (batteryInfo.Count > 0)
             {
-                int estCharge = (int)((totalBattery / totalPercent) * 100.0);
+                var estCharge = (int)((totalBattery / totalPercent) * 100.0);
                 BatteryDetailView.ClientName = batteryInfo[0].ClientName;
                 BatteryDetailView.TotalEstimatedCharge = estCharge;
-                BatteryDetailView.BatteryTrayControl.Text = String.Format(Properties.Resources.RemoteBatteryText, estCharge);
+                BatteryDetailView.BatteryTrayControl.Text = string.Format(Resources.RemoteBatteryText, estCharge);
                 _batteryIcon.BatteryLevel = estCharge;
                 _batteryIcon.Render();
                 BatteryDetailView.BatteryTrayIcon = _batteryIcon.RenderedIcon;
             }
             else
             {
-                BatteryDetailView.ClientName = Properties.Resources.NoBattFound;
-                BatteryDetailView.BatteryTrayIcon = Properties.Resources.NoBatt;
+                BatteryDetailView.ClientName = Resources.NoBattFound;
+                BatteryDetailView.BatteryTrayIcon = Resources.NoBatt;
             }
         }
 
         public void Dispose()
         {
             Dispose(true);
-            _log.Info(Properties.Resources.InfoMsgBattMonExit);
+            _log.Info(Resources.InfoMsgBattMonExit);
+            GC.SuppressFinalize(this);
         }
 
         protected void Dispose(bool disposing)
@@ -161,11 +159,9 @@ namespace FieldEffect.Presenters
             {
                 if (!_isDisposed)
                 {
-                    if (_batteryIcon != null)
-                        _batteryIcon.Dispose();
+                    _batteryIcon?.Dispose();
 
-                    if (_timer != null)
-                        _timer.Dispose();
+                    _timer?.Dispose();
                 }
                 _isDisposed = true;
             }

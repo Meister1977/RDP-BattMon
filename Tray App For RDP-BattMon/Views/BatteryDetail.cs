@@ -1,16 +1,10 @@
-﻿using FieldEffect.Classes;
-using FieldEffect.Models;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
+using System.Diagnostics;
 using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
-using FieldEffect.VCL.Server;
 using FieldEffect.Interfaces;
+using FieldEffect.Properties;
 
 namespace FieldEffect.Views
 {
@@ -19,19 +13,19 @@ namespace FieldEffect.Views
         public event EventHandler<FormClosingEventArgs> RequestClose;
 
         protected Lazy<List<IBatteryParameters>> _batteryParameters =
-            new Lazy<List<IBatteryParameters>>();
+            new();
 
-        protected int _totalEstimatedCharge = 0;
+        protected int _totalEstimatedCharge;
 
         public BatteryDetail()
         {
             InitializeComponent();
-            Shown += (s, e) => Visible = false;
+            Shown += (_, _) => Visible = false;
         }
 
         public Icon BatteryTrayIcon
         {
-            get { return BatteryTray.Icon; }
+            get => BatteryTray.Icon;
             set
             {
                 BatteryTray.Icon = value;
@@ -39,15 +33,12 @@ namespace FieldEffect.Views
             }
         }
 
-        public NotifyIcon BatteryTrayControl
-        {
-            get { return BatteryTray; }
-        }
+        public NotifyIcon BatteryTrayControl => BatteryTray;
 
-        public String ClientName
+        public string ClientName
         {
-            get { return RdpClientName.Text; }
-            set { RdpClientName.Text = value; }
+            get => RdpClientName.Text;
+            set => RdpClientName.Text = value;
         }
 
         public IEnumerable<IBatteryParameters> Batteries
@@ -57,8 +48,8 @@ namespace FieldEffect.Views
                 //return _batteryParameters.Value;
                 foreach (var control in BatteryDetailPanel.Controls)
                 {
-                    if (control is IBatteryParameters)
-                        yield return (IBatteryParameters)control;
+                    if (control is IBatteryParameters parameters)
+                        yield return parameters;
                 }
             }
         }
@@ -78,11 +69,11 @@ namespace FieldEffect.Views
 
         public int TotalEstimatedCharge
         {
-            get { return _totalEstimatedCharge; }
+            get => _totalEstimatedCharge;
             set
             {
                 _totalEstimatedCharge = value;
-                RdpTotalEstCharge.Text = String.Format("{0}%", _totalEstimatedCharge);
+                RdpTotalEstCharge.Text = $"{_totalEstimatedCharge}%";
             }
         }
 
@@ -108,7 +99,7 @@ namespace FieldEffect.Views
 
         private void LinkLabel1_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
-            System.Diagnostics.Process.Start(Properties.Resources.SourceCode);
+            Process.Start(Resources.SourceCode);
         }
     }
 }

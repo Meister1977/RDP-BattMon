@@ -1,24 +1,24 @@
-﻿using FieldEffect.Interfaces;
+﻿using System;
+using System.Collections.Generic;
+using System.Text;
+using FieldEffect.Interfaces;
+using FieldEffect.Properties;
 using FieldEffect.VCL.Client;
 using FieldEffect.VCL.Client.Interfaces;
 using FieldEffect.VCL.Client.WtsApi32;
 using FieldEffect.VCL.CommunicationProtocol;
-using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Linq;
-using log4net;
 using FieldEffect.VCL.Exceptions;
+using log4net;
 
 namespace FieldEffect.Models
 {
     public class BatteryDataReporter : IBatteryDataReporter
     {
-        IRdpClientVirtualChannel _clientAddIn;
-        IBatteryDataCollector _batteryDataCollector;
-        string _data = String.Empty;
-        private bool _isDisposed = false;
-        private ILog _log;
+        readonly IRdpClientVirtualChannel _clientAddIn;
+        readonly IBatteryDataCollector _batteryDataCollector;
+        string _data = string.Empty;
+        private readonly bool _isDisposed = false;
+        private readonly ILog _log;
 
         public BatteryDataReporter(ILog log, IRdpClientVirtualChannel clientAddin, IBatteryDataCollector batteryDataCollector)
         {
@@ -26,29 +26,30 @@ namespace FieldEffect.Models
             _batteryDataCollector = batteryDataCollector;
             _log = log;
 
-            _clientAddIn.DataChannelEvent += _clientAddIn_DataChannelEvent;
+            _clientAddIn.DataChannelEvent += ClientAddIn_DataChannelEvent;
         }
 
         public ChannelEntryPoints EntryPoints
         {
-            get { return _clientAddIn.EntryPoints; }
-            set { _clientAddIn.EntryPoints = value; }
+            get => _clientAddIn.EntryPoints;
+            set => _clientAddIn.EntryPoints = value;
         }
-        
+
         protected void Dispose(bool disposing)
         {
             if (disposing)
             {
                 if (!_isDisposed)
                 {
-                    
+
                 }
             }
         }
 
         public void Dispose()
         {
-            this.Dispose(true);
+            Dispose(true);
+            GC.SuppressFinalize(this);
         }
 
         public void Initialize()
@@ -57,9 +58,8 @@ namespace FieldEffect.Models
             _clientAddIn.Initialize();
         }
 
-        private void _clientAddIn_DataChannelEvent(object sender, DataChannelEventArgs e)
+        private void ClientAddIn_DataChannelEvent(object sender, DataChannelEventArgs e)
         {
-            string curData;
             if (e.DataFlags == ChannelFlags.First || e.DataFlags == ChannelFlags.Only)
             {
                 _data = "";
@@ -67,24 +67,24 @@ namespace FieldEffect.Models
             if (e.Data == null)
                 return;
 
-            curData = Encoding.UTF8.GetString(e.Data, 0, e.DataLength);
-            _data = _data + curData;
+            var curData = Encoding.UTF8.GetString(e.Data, 0, e.DataLength);
+            _data += curData;
 
             if (e.DataFlags == ChannelFlags.Last || e.DataFlags == ChannelFlags.Only)
             {
-                _log.Debug(String.Format(Properties.Resources.DebugMsgReceivedRequest, _data));
+                _log.Debug(string.Format(Resources.DebugMsgReceivedRequest, _data));
                 var request = Request.Deserialize(_data);
                 var response = new Response();
 
                 if (request.Value.Contains("BatteryInfo"))
                 {
-                    List<IBatteryInfo> batteryInfo = new List<IBatteryInfo>(_batteryDataCollector.GetAllBatteries());
+                    var batteryInfo = new List<IBatteryInfo>(_batteryDataCollector.GetAllBatteries());
                     response.Value.Add("BatteryInfo", batteryInfo);
                 }
-                string serializedResponse = response.Serialize();
-                _log.Debug(String.Format(Properties.Resources.DebugMsgSendingBattInfo, serializedResponse));
+                var serializedResponse = response.Serialize();
+                _log.Debug(string.Format(Resources.DebugMsgSendingBattInfo, serializedResponse));
 
-                byte[] responseBytes = Encoding.UTF8.GetBytes(serializedResponse);
+                var responseBytes = Encoding.UTF8.GetBytes(serializedResponse);
 
                 try
                 {

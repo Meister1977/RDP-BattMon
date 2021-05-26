@@ -1,5 +1,5 @@
-﻿using FieldEffect.VCL.Client.WtsApi32;
-using System;
+﻿using System;
+using FieldEffect.VCL.Client.WtsApi32;
 
 namespace FieldEffect.Interfaces
 {

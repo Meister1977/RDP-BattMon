@@ -1,31 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.IO;
-using Newtonsoft.Json;
+﻿using System.Text.Json;
 
 namespace FieldEffect.VCL.CommunicationProtocol.Helpers
 {
     public static class Serialization
     {
-        public static string Serialize<SerializableType>(object serializableObject)
+        public static string Serialize(object serializableObject)
         {
-            return JsonConvert.SerializeObject(serializableObject, new JsonSerializerSettings
-            {
-                TypeNameHandling = TypeNameHandling.All,
-                TypeNameAssemblyFormatHandling = TypeNameAssemblyFormatHandling.Full
-            });
+            return JsonSerializer.Serialize(serializableObject);
         }
 
-        public static SerializableType Deserialize<SerializableType>(string serializedObject)
-        { 
-            return JsonConvert.DeserializeObject<SerializableType>(serializedObject, new JsonSerializerSettings
-            {
-                TypeNameHandling = TypeNameHandling.All,
-                TypeNameAssemblyFormatHandling = TypeNameAssemblyFormatHandling.Full
-            });
+        public static TSerializableType Deserialize<TSerializableType>(string serializedObject)
+        {
+            return JsonSerializer.Deserialize<TSerializableType>(serializedObject);
         }
     }
 }

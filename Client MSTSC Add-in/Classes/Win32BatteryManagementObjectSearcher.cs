@@ -1,55 +1,53 @@
-﻿using FieldEffect.Interfaces;
-using System;
-using System.Collections;
+﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Management;
-using System.Text;
-using System.Threading.Tasks;
+using System.Runtime.Versioning;
+using FieldEffect.Interfaces;
 
 namespace FieldEffect.Classes
 {
+    [SupportedOSPlatform("windows")]
     public class Win32BatteryManagementObjectSearcher : ManagementObjectSearcher, IBatteryDataCollector
     {
-        IBatteryInfoFactory _batteryInfoFactory;
+        private readonly IBatteryInfoFactory _batteryInfoFactory;
 
         public Win32BatteryManagementObjectSearcher(IBatteryInfoFactory batteryInfoFactory, string query) : base(query)
         {
             _batteryInfoFactory = batteryInfoFactory;
         }
 
-        private TargetType ConvertValue<TargetType>(String propertyAsString)
+        private static TTargetType ConvertValue<TTargetType>(string propertyAsString)
         {
-            object outValue = default(TargetType);
+            object outValue = default(TTargetType);
 
-            if (typeof(TargetType) == typeof(int))
+            if (typeof(TTargetType) == typeof(int))
             {
-                if (int.TryParse(propertyAsString, out int parsedString))
+                if (int.TryParse(propertyAsString, out var parsedString))
                 {
                     //Boxing conversion
                     outValue = parsedString;
                 }
             }
 
-            if (typeof(TargetType) == typeof(String))
+            if (typeof(TTargetType) == typeof(string))
             {
                 outValue = propertyAsString;
             }
 
-            if (typeof(TargetType) == typeof(TimeSpan))
+            if (typeof(TTargetType) == typeof(TimeSpan))
             {
-                int seconds = ConvertValue<int>(propertyAsString);
+                var seconds = ConvertValue<int>(propertyAsString);
                 outValue = new TimeSpan(0, 0, seconds);
             }
 
-            return (TargetType)outValue;
+            return (TTargetType)outValue;
         }
 
         public IEnumerable<IBatteryInfo> GetAllBatteries()
         {
-            List<IBatteryInfo> batteryInfoList = new List<IBatteryInfo>();
-            var batteries = base.Get();
-            foreach (ManagementObject battery in batteries)
+            var batteryInfoList = new List<IBatteryInfo>();
+            var batteries = Get();
+            foreach (var battery in batteries)
             {
                 var batteryInfo = _batteryInfoFactory.Create(
                         Environment.MachineName,

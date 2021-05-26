@@ -1,17 +1,17 @@
 ﻿using System;
-using FieldEffect.VCL.Exceptions;
-using FieldEffect.VCL.Server.Interfaces;
-using FieldEffect.VCL.CommunicationProtocol;
-using FieldEffect.Interfaces;
 using System.Collections.Generic;
+using FieldEffect.Interfaces;
+using FieldEffect.Properties;
+using FieldEffect.VCL.CommunicationProtocol;
+using FieldEffect.VCL.Server.Interfaces;
 using log4net;
 
 namespace FieldEffect.Models
 {
     public class BatteryDataRetriever : IBatteryDataRetriever
     {
-        private IRdpServerVirtualChannel _channel;
-        private ILog _log;
+        private readonly IRdpServerVirtualChannel _channel;
+        private readonly ILog _log;
 
         public BatteryDataRetriever (ILog log, IRdpServerVirtualChannel channel)
         {
@@ -45,12 +45,12 @@ namespace FieldEffect.Models
 
             _channel.OpenChannel();
 
-            string serializedRequest = request.Serialize();
-            _log.Debug(String.Format(Properties.Resources.DebugMsgRequestingBattInfo, serializedRequest));
+            var serializedRequest = request.Serialize();
+            _log.Debug(string.Format(Resources.DebugMsgRequestingBattInfo, serializedRequest));
             _channel.WriteChannel(request.Serialize());
 
             var reply = _channel.ReadChannel();
-            _log.Debug(String.Format(Properties.Resources.DebugMsgReceivedBattInfo, reply));
+            _log.Debug(string.Format(Resources.DebugMsgReceivedBattInfo, reply));
 
             var response = Response.Deserialize(reply);
             var propertyValue = (List<IBatteryInfo>)response.Value["BatteryInfo"];

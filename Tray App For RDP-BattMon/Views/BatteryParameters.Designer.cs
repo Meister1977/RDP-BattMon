@@ -1,11 +1,14 @@
-﻿namespace FieldEffect.Views
+﻿using System.ComponentModel;
+using System.Windows.Forms;
+
+namespace FieldEffect.Views
 {
     partial class BatteryParameters
     {
         /// <summary> 
         /// Required designer variable.
         /// </summary>
-        private System.ComponentModel.IContainer components = null;
+        private IContainer components = null;
 
         /// <summary> 
         /// Clean up any resources being used.
@@ -130,11 +133,11 @@
 
         #endregion
 
-        private System.Windows.Forms.Label RdpClientBattStatus;
-        private System.Windows.Forms.Label label4;
-        private System.Windows.Forms.Label RdpClientEstRuntime;
-        private System.Windows.Forms.Label label3;
-        private System.Windows.Forms.Label RdpClientBattery;
-        private System.Windows.Forms.Label RdpBatteryName;
+        private Label RdpClientBattStatus;
+        private Label label4;
+        private Label RdpClientEstRuntime;
+        private Label label3;
+        private Label RdpClientBattery;
+        private Label RdpBatteryName;
     }
 }

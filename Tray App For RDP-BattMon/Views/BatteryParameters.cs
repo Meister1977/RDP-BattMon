@@ -1,6 +1,5 @@
-﻿using FieldEffect.Interfaces;
-using System;
-using System.Windows.Forms;
+﻿using System.Windows.Forms;
+using FieldEffect.Interfaces;
 
 namespace FieldEffect.Views
 {
@@ -11,32 +10,32 @@ namespace FieldEffect.Views
             InitializeComponent();
         }
 
-        public String BatteryName
+        public string BatteryName
         {
-            get { return RdpBatteryName.Text; }
-            set { RdpBatteryName.Text = value; }
+            get => RdpBatteryName.Text;
+            set => RdpBatteryName.Text = value;
         }
 
-        public String BatteryStatus
+        public string BatteryStatus
         {
-            get { return RdpClientBattStatus.Text; }
-            set { RdpClientBattStatus.Text = value; }
+            get => RdpClientBattStatus.Text;
+            set => RdpClientBattStatus.Text = value;
         }
 
-        public String ClientEstRuntime
+        public string ClientEstRuntime
         {
-            get { return RdpClientEstRuntime.Text; }
-            set { RdpClientEstRuntime.Text = value; }
+            get => RdpClientEstRuntime.Text;
+            set => RdpClientEstRuntime.Text = value;
         }
 
-        private int _estimatedChargeRemaining = 0;
+        private int _estimatedChargeRemaining;
         public int EstimatedChargeRemaining
         {
-            get { return _estimatedChargeRemaining; }
+            get => _estimatedChargeRemaining;
             set
             {
                 _estimatedChargeRemaining = value;
-                RdpClientBattery.Text = String.Format("{0}%", _estimatedChargeRemaining);
+                RdpClientBattery.Text = $"{_estimatedChargeRemaining}%";
             }
         }
     }

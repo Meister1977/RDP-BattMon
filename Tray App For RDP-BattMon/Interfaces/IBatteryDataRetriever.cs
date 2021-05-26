@@ -1,5 +1,4 @@
-﻿using FieldEffect.Interfaces;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace FieldEffect.Interfaces
 {

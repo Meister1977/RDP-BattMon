@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace FieldEffect.VCL.CommunicationProtocol.Interfaces
+namespace FieldEffect.VCL.CommunicationProtocol
 {
     public interface IResponse
     {

@@ -1,32 +1,32 @@
-﻿using FieldEffect.VCL.CommunicationProtocol.Exceptions;
+﻿using System;
+using System.Collections.Generic;
+using FieldEffect.VCL.CommunicationProtocol.Exceptions;
 using FieldEffect.VCL.CommunicationProtocol.Helpers;
 using FieldEffect.VCL.CommunicationProtocol.Interfaces;
-using System;
-using System.Collections.Generic;
 
 namespace FieldEffect.VCL.CommunicationProtocol
 {
     [Serializable]
     public class Request : IRequest
     {
-        public List<String> Value { get; private set; }
+        public List<string> Value { get; private set; }
 
         public Request()
         {
-            Value = new List<String>();
+            Value = new List<string>();
         }
 
         public string Serialize()
         {
-            return Serialization.Serialize<Request>(this) + '\0';
+            return Serialization.Serialize(this) + '\0';
         }
 
-        public static Request Deserialize(String value)
+        public static Request Deserialize(string value)
         {
             if (!value.EndsWith("\0"))
                 throw new BattMonCommunicationException("Request text was garbled");
 
-            value = value.Substring(0, value.Length - 1);
+            value = value[..^1];
 
             return Serialization.Deserialize<Request>(value);
         }

@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Drawing;
 using FieldEffect.Interfaces;
-using log4net;
 
 namespace FieldEffect.Models
 {
     public class BatteryIcon : IBatteryIcon
     {
-        protected bool _isDisposed = false;
+        protected bool _isDisposed;
 
         public enum BatteryOrientation
         {
@@ -32,11 +31,10 @@ namespace FieldEffect.Models
             VerticalT
         }
 
-        private Icon _batteryTemplate;
+        private readonly Icon _batteryTemplate;
         private Icon _renderedBattery;
         private Rectangle _batteryLevelMask;
-        private BatteryOrientation _batteryOrientation;
-        private ILog _log;
+        private readonly BatteryOrientation _batteryOrientation;
 
         /// <summary>
         /// Constructor
@@ -44,11 +42,10 @@ namespace FieldEffect.Models
         /// <param name="batteryTemplate">An icon containing the main artwork for the battery</param>
         /// <param name="batteryLevelMask">A rectangle on the template that we will draw the battery level in</param>
         /// <param name="batteryOrientation">The orientation of the battery icon</param>
-        public BatteryIcon(ILog log, Icon batteryTemplate, Rectangle batteryLevelMask, BatteryOrientation batteryOrientation)
+        public BatteryIcon(Icon batteryTemplate, Rectangle batteryLevelMask, BatteryOrientation batteryOrientation)
         {
             _batteryTemplate = batteryTemplate;
             _batteryLevelMask = batteryLevelMask;
-            _log = log;
 
             //Copy the icon
             _renderedBattery = Icon.FromHandle(batteryTemplate.Handle);
@@ -60,68 +57,45 @@ namespace FieldEffect.Models
         /// </summary>
         public int BatteryLevel { get; set; }
 
-        public Icon RenderedIcon
-        {
-            get
-            {
-                return _renderedBattery;
-            }
-        }
+        public Icon RenderedIcon => _renderedBattery;
 
         public void Render()
         {
-            Rectangle batteryRect = new Rectangle();
-
-            using (Bitmap template = _batteryTemplate.ToBitmap())
-            using (var g = Graphics.FromImage(template))
+            using var template = _batteryTemplate.ToBitmap();
+            using var g = Graphics.FromImage(template);
+            var batteryRect = _batteryOrientation switch
             {
+                BatteryOrientation.HorizontalL => new Rectangle(_batteryLevelMask.X, _batteryLevelMask.Y,
+                    (int) (_batteryLevelMask.Width * (BatteryLevel / 100.0)), _batteryLevelMask.Height),
+                _ => throw new NotImplementedException("Only BatteryOrientation.HorizontalL is currently implemented.")
+            };
 
-                switch (_batteryOrientation)
-                {
-                    case BatteryOrientation.HorizontalL:
-                        batteryRect = new Rectangle(
-                        _batteryLevelMask.X,
-                        _batteryLevelMask.Y,
-                        (int)(_batteryLevelMask.Width * (BatteryLevel / 100.0)),
-                        _batteryLevelMask.Height
-                    );
-                        break;
+            g.Clear(Color.Transparent);
+            g.DrawIcon(_batteryTemplate, 0, 0);
+            using var brush = new SolidBrush(BatteryLevel <= 10 ? Color.Red : Color.White);
+            g.FillRectangle(brush, batteryRect);
 
-                    default:
-                        throw new NotImplementedException("Only BatteryOrientation.HorizontalL is currently implemented.");
-                }
-
-                g.Clear(Color.Transparent);
-                g.DrawIcon(_batteryTemplate, 0, 0);
-                using (var brush = new SolidBrush(BatteryLevel <= 10 ? Color.Red : Color.White))
-                {
-                    g.FillRectangle(brush, batteryRect);
-
-                    if (_renderedBattery != null)
-                    {
-                        _renderedBattery.Dispose();
-                        IntPtr hIcon = template.GetHicon();
-                        _renderedBattery = Icon.FromHandle(hIcon);
-                    }
-                }
+            if (_renderedBattery != null)
+            {
+                _renderedBattery.Dispose();
+                var hIcon = template.GetHicon();
+                _renderedBattery = Icon.FromHandle(hIcon);
             }
         }
 
         public void Dispose()
         {
             Dispose(true);
+            GC.SuppressFinalize(this);
         }
 
-        protected void Dispose(bool disposing)
+        private void Dispose(bool disposing)
         {
             if (disposing)
             {
                 if (!_isDisposed)
                 {
-                    if (_renderedBattery != null)
-                    {
-                        _renderedBattery.Dispose();
-                    }
+                    _renderedBattery?.Dispose();
                     _isDisposed = true;
                 }
             }

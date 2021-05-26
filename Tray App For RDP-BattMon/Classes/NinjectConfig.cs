@@ -1,21 +1,23 @@
-﻿using FieldEffect.Interfaces;
+﻿using System;
+using System.Drawing;
+using System.Timers;
+using FieldEffect.Interfaces;
 using FieldEffect.Models;
 using FieldEffect.Presenters;
+using FieldEffect.Properties;
 using FieldEffect.VCL.Server;
 using FieldEffect.VCL.Server.Interfaces;
 using FieldEffect.Views;
 using log4net;
 using Ninject;
-using Ninject.Modules;
-using System;
-using System.Drawing;
 using Ninject.Extensions.Factory;
+using Ninject.Modules;
 
 namespace FieldEffect.Classes
 {
     internal class NinjectConfig : NinjectModule
     {
-        private static Lazy<IKernel> _instance = new Lazy<IKernel>(()=>
+        private static readonly Lazy<IKernel> _instance = new(()=>
         {
             var kernel = new StandardKernel(new NinjectConfig());
 
@@ -27,13 +29,8 @@ namespace FieldEffect.Classes
             return kernel;
         });
 
-        public static IKernel Instance
-        {
-            get
-            {
-                return _instance.Value;
-            }
-        }
+        public static IKernel Instance => _instance.Value;
+
         public override void Load()
         {
             KernelInstance.Bind<IBatteryInfo>()
@@ -57,7 +54,7 @@ namespace FieldEffect.Classes
             KernelInstance.Bind<IBatteryIcon>()
                 .To<BatteryIcon>()
                 .InSingletonScope()
-                .WithConstructorArgument("batteryTemplate", Properties.Resources.BattLevel)
+                .WithConstructorArgument("batteryTemplate", Resources.BattLevel)
                 .WithConstructorArgument("batteryLevelMask", new Rectangle(5, 10, 20, 10))
                 .WithConstructorArgument("batteryOrientation", BatteryIcon.BatteryOrientation.HorizontalL)
                 .WithPropertyValue("BatteryLevel", 0);
@@ -72,13 +69,13 @@ namespace FieldEffect.Classes
                  .WithConstructorArgument("channelName","BATTMON");
 
             KernelInstance.Bind<ILog>().ToMethod(context =>
-                LogManager.GetLogger(context.Request.Target.Member.ReflectedType));
+                LogManager.GetLogger(context.Request.Target!.Member.ReflectedType));
 
-            KernelInstance.Bind<System.Timers.Timer>()
+            KernelInstance.Bind<Timer>()
                 .ToSelf()
                 .InSingletonScope()
                 .WithPropertyValue("AutoReset", true)
-                .WithPropertyValue("Interval", Properties.Settings.Default.PollingInterval * 1000.0);
+                .WithPropertyValue("Interval", Settings.Default.PollingInterval * 1000.0);
         }
     }
 }

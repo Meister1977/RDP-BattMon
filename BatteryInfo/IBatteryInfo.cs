@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace FieldEffect.Interfaces
+﻿namespace FieldEffect
 {
     /**
      * This interface provides information about the battery. Future
@@ -14,7 +8,7 @@ namespace FieldEffect.Interfaces
     public interface IBatteryInfo
     {
         /// <summary>
-        /// Name of the cient we're reading battery data from
+        /// Name of the client we're reading battery data from
         /// </summary>
         string ClientName { get; }
         /// <summary>
